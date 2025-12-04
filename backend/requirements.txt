@@ -1,0 +1,27 @@
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+
+# LangChain - versions compatibles
+langchain==0.2.16
+langchain-community==0.2.16
+langchain-core==0.2.38
+
+# PyTorch CPU-only (beaucoup plus léger, sans CUDA)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.0+cpu
+
+# Embeddings
+sentence-transformers>=2.6.0
+langchain-huggingface==0.0.3
+
+# Vector store
+faiss-cpu==1.7.4
+
+# Document loaders
+pypdf==3.17.1
+unstructured==0.11.6
+
+# LLM
+langchain-groq==0.1.9
