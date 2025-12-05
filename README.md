@@ -62,7 +62,19 @@ git clone <your-repo-url>
 cd AI\ Coding\ Challenge
 ```
 
-### 2. Verify Documents
+### 2. Set Groq API Key
+
+Create a `.env` file in the root directory:
+
+```bash
+echo "GROQ_API_KEY=your_groq_api_key_here" > .env
+```
+
+Get your free API key from: https://console.groq.com/keys
+
+**Note:** Without the API key, the system will work in retrieval-only mode (no LLM-generated answers).
+
+### 3. Verify Documents
 
 Ensure your documents are in the `provided document/` directory:
 
@@ -70,9 +82,9 @@ Ensure your documents are in the `provided document/` directory:
 ls "provided document/"
 ```
 
-### 3. Build Containers
+**Time:** 3-5 minutes (first time)
 
-```bash
+### 5. Start Services
 chmod +x docker.sh
 ./docker.sh build
 ```
@@ -95,7 +107,7 @@ Services will be available at:
 - **Backend API:** http://localhost:8000
 - **API Docs:** http://localhost:8000/docs
 
-### 5. Ingest Documents
+### 6. Ingest Documents
 
 ```bash
 ./docker.sh ingest
@@ -109,7 +121,7 @@ This process:
 
 **Time:** 30-90 seconds depending on document size
 
-### 6. Start Asking Questions!
+### 7. Start Asking Questions!
 
 Open your browser: http://localhost:3000
 

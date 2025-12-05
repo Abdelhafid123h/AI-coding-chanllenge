@@ -3,14 +3,10 @@ from typing import List, Dict, Any
 import logging
 from pathlib import Path
 
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import (
-    PyPDFLoader,
-    TextLoader,
-    UnstructuredMarkdownLoader
-)
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.schema import Document
 from langchain_groq import ChatGroq
 from langchain.chains import RetrievalQA
@@ -58,24 +54,21 @@ class RAGPipeline:
                 self.vector_store = None
     
     def _initialize_qa_chain(self):
-        """Initialize the QA chain with LLM"""
+        """Initialize the QA chain with Groq LLM"""
         try:
-            # Use Groq API for cloud LLM (free tier available)
             groq_api_key = os.getenv("GROQ_API_KEY", "")
             
             if groq_api_key:
                 try:
                     llm = ChatGroq(
-                        model="llama-3.3-70b-versatile",
+                        model="llama-3.1-8b-instant",
                         groq_api_key=groq_api_key,
                         temperature=0.7,
-                        max_tokens=512
+                        max_tokens=500
                     )
                     
-                    # Create custom prompt
-                    prompt_template = """Use the following pieces of context to answer the question at the end. 
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
-Provide a clear and concise answer based on the context.
+                    prompt_template = """Use the following context to answer the question.
+If you don't know, say so. Be concise.
 
 Context: {context}
 
@@ -88,26 +81,22 @@ Answer:"""
                         input_variables=["context", "question"]
                     )
                     
-                    # Create retrieval QA chain
                     self.qa_chain = RetrievalQA.from_chain_type(
                         llm=llm,
                         chain_type="stuff",
-                        retriever=self.vector_store.as_retriever(
-                            search_kwargs={"k": 3}
-                        ),
+                        retriever=self.vector_store.as_retriever(search_kwargs={"k": 3}),
                         return_source_documents=True,
                         chain_type_kwargs={"prompt": PROMPT}
                     )
-                    logger.info("QA chain initialized successfully with Groq LLM")
-                except Exception as groq_error:
-                    logger.warning(f"Groq API not available: {str(groq_error)}. Using retrieval-only mode")
+                    logger.info("QA chain with Groq LLM initialized")
+                except Exception as e:
+                    logger.warning(f"Groq error: {e}. Using retrieval-only")
                     self.qa_chain = None
             else:
-                logger.info("No Groq API key found. Using retrieval-only mode")
+                logger.info("No Groq API key. Using retrieval-only")
                 self.qa_chain = None
-                
         except Exception as e:
-            logger.error(f"Failed to initialize QA chain: {str(e)}")
+            logger.error(f"QA chain init failed: {e}")
             self.qa_chain = None
     
     def load_documents(self, docs_path: str) -> List[Document]:
@@ -125,10 +114,6 @@ Answer:"""
                 try:
                     if file_path.suffix.lower() == ".pdf":
                         loader = PyPDFLoader(str(file_path))
-                    elif file_path.suffix.lower() == ".txt":
-                        loader = TextLoader(str(file_path))
-                    elif file_path.suffix.lower() in [".md", ".markdown"]:
-                        loader = UnstructuredMarkdownLoader(str(file_path))
                     else:
                         logger.warning(f"Unsupported file type: {file_path}")
                         continue
@@ -190,11 +175,11 @@ Answer:"""
         logger.info("Ingestion completed successfully")
     
     def answer_question(self, question: str) -> Dict[str, Any]:
-        """Answer a question using the RAG pipeline"""
+        """Answer a question using RAG pipeline"""
         if not self.vector_store:
             raise ValueError("Vector store not initialized")
         
-        # If QA chain is available, use it
+        # Try LLM-based QA if available
         if self.qa_chain:
             try:
                 result = self.qa_chain({"query": question})
@@ -207,24 +192,22 @@ Answer:"""
                     "sources": sources
                 }
             except Exception as e:
-                logger.error(f"QA chain failed: {str(e)}")
-                # Fall through to simple retrieval
+                logger.error(f"QA chain failed: {e}")
         
-        # Fallback: simple retrieval without LLM
+        # Fallback: retrieval-only
         logger.info("Using retrieval-only mode")
         docs = self.vector_store.similarity_search(question, k=3)
         
         if not docs:
             return {
-                "answer": "I couldn't find relevant information to answer your question.",
+                "answer": "No relevant information found.",
                 "sources": []
             }
         
-        # Combine retrieved chunks
         context = "\n\n".join([doc.page_content for doc in docs])
         sources = list(set([doc.metadata.get("source", "Unknown") for doc in docs]))
         
-        answer = f"Based on the retrieved documents:\n\n{context[:1000]}..."
+        answer = f"Based on the documents:\n\n{context[:800]}..."
         
         return {
             "answer": answer,
