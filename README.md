@@ -82,11 +82,33 @@ Ensure your documents are in the `provided document/` directory:
 ls "provided document/"
 ```
 
+### 4. Build Containers
+
+**For Linux/WSL users:**
+
+If you encounter the error `cannot execute: required file not found`, fix the line endings:
+
+```bash
+This will:
+- Build backend Python container
+- Build frontend Node.js container
+- Download dependencies
+
 **Time:** 3-5 minutes (first time)
 
 ### 5. Start Services
-chmod +x docker.sh
-./docker.sh build
+
+```bash
+# Linux/WSL
+./docker.sh up
+
+# Windows PowerShell
+.\docker.ps1 up
+```
+**For Windows PowerShell users:**
+
+```powershell
+.\docker.ps1 build
 ```
 
 This will:
@@ -103,11 +125,15 @@ This will:
 ```
 
 Services will be available at:
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:8000
-- **API Docs:** http://localhost:8000/docs
-
 ### 6. Ingest Documents
+
+```bash
+# Linux/WSL
+./docker.sh ingest
+
+# Windows PowerShell
+.\docker.ps1 ingest
+``` 6. Ingest Documents
 
 ```bash
 ./docker.sh ingest
