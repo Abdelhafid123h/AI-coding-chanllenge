@@ -84,31 +84,9 @@ ls "provided document/"
 
 ### 4. Build Containers
 
-**For Linux/WSL users:**
-
-If you encounter the error `cannot execute: required file not found`, fix the line endings:
-
 ```bash
-This will:
-- Build backend Python container
-- Build frontend Node.js container
-- Download dependencies
-
-**Time:** 3-5 minutes (first time)
-
-### 5. Start Services
-
-```bash
-# Linux/WSL
-./docker.sh up
-
-# Windows PowerShell
-.\docker.ps1 up
-```
-**For Windows PowerShell users:**
-
-```powershell
-.\docker.ps1 build
+chmod +x docker.sh
+./docker.sh build
 ```
 
 This will:
@@ -118,22 +96,7 @@ This will:
 
 **Time:** 3-5 minutes (first time)
 
-### 4. Start Services
-
-```bash
-./docker.sh up
-```
-
-Services will be available at:
-### 6. Ingest Documents
-
-```bash
-# Linux/WSL
-./docker.sh ingest
-
-# Windows PowerShell
-.\docker.ps1 ingest
-``` 6. Ingest Documents
+### 5. Ingest Documents
 
 ```bash
 ./docker.sh ingest
@@ -147,15 +110,18 @@ This process:
 
 **Time:** 30-90 seconds depending on document size
 
+### 6. Start Services
+
+```bash
+./docker.sh up
+```
+
+Services will be available at:
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:8000
+- **API Docs:** http://localhost:8000/docs
+
 ### 7. Start Asking Questions!
-
-Open your browser: http://localhost:3000
-
-Example questions:
-- "What is this document about?"
-- "Summarize the main points"
-- "Tell me about [specific topic]"
-
 ## 🎮 Docker Commands
 
 ```bash
@@ -262,6 +228,24 @@ self.embeddings = HuggingFaceEmbeddings(
 ```
 
 ## 🐛 Troubleshooting
+
+### Line Endings Error (Linux/WSL)
+
+If you get the error `cannot execute: required file not found` when running `./docker.sh`:
+
+```bash
+# Fix line endings (CRLF → LF)
+sed -i 's/\r$//' docker.sh
+
+# OR if dos2unix is installed
+dos2unix docker.sh
+
+# Make executable
+chmod +x docker.sh
+
+# Try again
+./docker.sh build
+```
 
 ### Docker Issues
 
